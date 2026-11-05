@@ -10,6 +10,7 @@ import com.google.gson.JsonParseException;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.OptionalInt;
 
 public class Main {
 
@@ -28,7 +29,9 @@ public class Main {
 
         try (input) {
 
-            while (true) {
+            boolean shouldExit = false;
+
+            while (!shouldExit) {
 
                 output.showSearchPrompt();
 
@@ -43,18 +46,18 @@ public class Main {
                     continue;
                 }
 
+                List<Article> articles;
+
                 try {
 
                     output.showSearching();
 
-                    List<Article> articles =
-                            searchService.search(query.trim());
-
-                    output.showResultCount(articles.size());
+                    articles = searchService.search(query.trim());
 
                 } catch (IOException e) {
 
                     output.showNetworkError(e.getMessage());
+                    continue;
 
                 } catch (InterruptedException e) {
 
@@ -65,6 +68,48 @@ public class Main {
                 } catch (JsonParseException | IllegalArgumentException e) {
 
                     output.showResponseError(e.getMessage());
+                    continue;
+                }
+
+                // Если результатов нет, возвращаемся к поиску
+                if (articles.isEmpty()) {
+                    output.showNoResults();
+                    continue;
+                }
+
+                // Показываем найденные статьи
+                output.showResults(articles);
+
+                // Ожидаем выбора пользователя
+                while (true) {
+
+                    output.promptForArticleChoice();
+
+                    String choice = input.readLine();
+
+                    if (choice == null || choice.trim().equalsIgnoreCase("exit")) {
+                        shouldExit = true;
+                        break;
+                    }
+
+                    if (choice.trim().equals("0")) {
+                        break;
+                    }
+
+                    OptionalInt selectedNumber =
+                            input.parseArticleNumber(choice, articles.size());
+
+                    if (selectedNumber.isEmpty()) {
+                        output.showInvalidChoice();
+                        continue;
+                    }
+
+                    Article selectedArticle =
+                            articles.get(selectedNumber.getAsInt() - 1);
+
+                    output.showSelectedArticle(selectedArticle);
+
+                    break;
                 }
             }
 
