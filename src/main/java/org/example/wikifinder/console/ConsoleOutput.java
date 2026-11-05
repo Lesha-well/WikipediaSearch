@@ -51,4 +51,22 @@ public class ConsoleOutput {
     public void showInterrupted() {
         System.out.println("Выполнение запроса было прервано.");
     }
+
+    public void showResultCount(int count) {
+
+        if (count == 0) {
+            System.out.println("По вашему запросу ничего не найдено.");
+        } else {
+            System.out.println("Успешно обработан ответ Википедии.");
+            System.out.println("Количество найденных статей: " + count);
+        }
+    }
+
+    public void showResponseError(String message) {
+        System.out.println("Ошибка при обработке ответа Википедии.");
+
+        if (message != null && !message.isBlank()) {
+            System.out.println("Подробности: " + message);
+        }
+    }
 }
