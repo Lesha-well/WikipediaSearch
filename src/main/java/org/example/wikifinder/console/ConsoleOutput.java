@@ -30,4 +30,25 @@ public class ConsoleOutput {
     public void showInputError() {
         System.out.println("Ошибка при чтении пользовательского ввода.");
     }
+
+    public void showSearching() {
+        System.out.println();
+        System.out.println("Выполняется поиск...");
+    }
+
+    public void showApiResponseReceived() {
+        System.out.println("Получен ответ от Википедии.");
+    }
+
+    public void showNetworkError(String message) {
+        System.out.println("Ошибка при обращении к Википедии.");
+
+        if (message != null && !message.isBlank()) {
+            System.out.println("Подробности: " + message);
+        }
+    }
+
+    public void showInterrupted() {
+        System.out.println("Выполнение запроса было прервано.");
+    }
 }

@@ -1,5 +1,6 @@
 package org.example.wikifinder;
 
+import org.example.wikifinder.api.WikipediaApiClient;
 import org.example.wikifinder.console.ConsoleInput;
 import org.example.wikifinder.console.ConsoleOutput;
 
@@ -11,6 +12,7 @@ public class Main {
 
         ConsoleInput input = new ConsoleInput();
         ConsoleOutput output = new ConsoleOutput();
+        WikipediaApiClient apiClient = new WikipediaApiClient();
 
         output.showWelcome();
 
@@ -31,7 +33,26 @@ public class Main {
                     continue;
                 }
 
-                output.showAcceptedQuery(query.trim());
+                try {
+
+                    output.showSearching();
+
+                    String response = apiClient.search(query.trim());
+
+                    if (response != null && !response.isBlank()) {
+                        output.showApiResponseReceived();
+                    }
+
+                } catch (IOException e) {
+
+                    output.showNetworkError(e.getMessage());
+
+                } catch (InterruptedException e) {
+
+                    Thread.currentThread().interrupt();
+                    output.showInterrupted();
+                    break;
+                }
             }
 
         } catch (IOException e) {
