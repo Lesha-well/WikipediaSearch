@@ -1,6 +1,7 @@
 package org.example.wikifinder;
 
 import org.example.wikifinder.api.WikipediaApiClient;
+import org.example.wikifinder.browser.BrowserOpener;
 import org.example.wikifinder.console.ConsoleInput;
 import org.example.wikifinder.console.ConsoleOutput;
 import org.example.wikifinder.model.Article;
@@ -24,6 +25,8 @@ public class Main {
 
         WikipediaSearchService searchService =
                 new WikipediaSearchService(apiClient, parser);
+
+        BrowserOpener browserOpener = new BrowserOpener();
 
         output.showWelcome();
 
@@ -71,16 +74,16 @@ public class Main {
                     continue;
                 }
 
-                // Если результатов нет, возвращаемся к поиску
+                // Проверяем наличие результатов
                 if (articles.isEmpty()) {
                     output.showNoResults();
                     continue;
                 }
 
-                // Показываем найденные статьи
+                // Выводим результаты поиска
                 output.showResults(articles);
 
-                // Ожидаем выбора пользователя
+                // Обрабатываем выбор пользователя
                 while (true) {
 
                     output.promptForArticleChoice();
@@ -107,7 +110,17 @@ public class Main {
                     Article selectedArticle =
                             articles.get(selectedNumber.getAsInt() - 1);
 
-                    output.showSelectedArticle(selectedArticle);
+                    // Открываем выбранную статью
+                    try {
+
+                        output.showOpeningArticle(selectedArticle);
+
+                        browserOpener.open(selectedArticle);
+
+                    } catch (IOException e) {
+
+                        output.showBrowserError(e.getMessage());
+                    }
 
                     break;
                 }

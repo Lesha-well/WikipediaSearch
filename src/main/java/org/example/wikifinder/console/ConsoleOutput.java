@@ -108,4 +108,17 @@ public class ConsoleOutput {
                 .replace("&gt;", ">")
                 .replace("&#039;", "'");
     }
+
+    public void showOpeningArticle(Article article) {
+        System.out.println();
+        System.out.println("Открываю статью: " + article.getTitle());
+    }
+
+    public void showBrowserError(String message) {
+        System.out.println("Не удалось открыть статью в браузере.");
+
+        if (message != null && !message.isBlank()) {
+            System.out.println("Подробности: " + message);
+        }
+    }
 }
