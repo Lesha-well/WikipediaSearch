@@ -1,71 +1,97 @@
+
 package org.example.wikifinder.parser;
 
+import org.example.wikifinder.exception.WikipediaApiException;
+import org.example.wikifinder.exception.WikipediaResponseException;
 import org.example.wikifinder.model.Article;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonParseException;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class WikipediaResponseParser {
 
-    public List<Article> parse(String json) {
+    public List<Article> parse(String json)
+            throws WikipediaApiException, WikipediaResponseException {
 
         if (json == null || json.isBlank()) {
-            throw new IllegalArgumentException("Получен пустой ответ.");
+            throw new WikipediaResponseException("Получен пустой ответ.");
         }
 
-        // Преобразуем JSON в объект
-        JsonElement rootElement = JsonParser.parseString(json);
+        JsonElement rootElement;
+
+        try {
+            rootElement = JsonParser.parseString(json);
+        } catch (JsonParseException e) {
+            throw new WikipediaResponseException(
+                    "Не удалось разобрать JSON.", e
+            );
+        }
 
         if (!rootElement.isJsonObject()) {
-            throw new IllegalArgumentException(
+            throw new WikipediaResponseException(
                     "Некорректная структура ответа Википедии."
             );
         }
 
         JsonObject root = rootElement.getAsJsonObject();
 
-        // Проверяем, не вернул ли API ошибку
-        if (root.has("error") && root.get("error").isJsonObject()) {
+        // Проверяем ошибку API
+        if (root.has("error")) {
+            JsonElement errorElement = root.get("error");
 
-            JsonObject error = root.getAsJsonObject("error");
+            if (errorElement.isJsonObject()) {
+                JsonObject error = errorElement.getAsJsonObject();
 
-            String message = error.has("info")
-                    ? error.get("info").getAsString()
-                    : "Неизвестная ошибка API";
+                String message = error.has("info")
+                        ? error.get("info").getAsString()
+                        : "Неизвестная ошибка API";
 
-            throw new IllegalArgumentException(
-                    "Ошибка API Википедии: " + message
+                throw new WikipediaApiException(message);
+            }
+
+            throw new WikipediaResponseException(
+                    "Некорректный формат ошибки API."
             );
         }
 
-        // Получаем объект query
+        // Получаем query
         JsonElement queryElement = root.get("query");
 
         if (queryElement == null || !queryElement.isJsonObject()) {
-            return new ArrayList<>();
+            throw new WikipediaResponseException(
+                    "В ответе отсутствует объект query."
+            );
         }
 
         JsonObject queryObject = queryElement.getAsJsonObject();
 
-        // Получаем массив search
+        // Получаем search
         JsonElement searchElement = queryObject.get("search");
 
         if (searchElement == null || !searchElement.isJsonArray()) {
-            return new ArrayList<>();
+            throw new WikipediaResponseException(
+                    "В ответе отсутствует массив search."
+            );
         }
 
         JsonArray searchArray = searchElement.getAsJsonArray();
 
         List<Article> articles = new ArrayList<>();
 
-        for (JsonElement element : searchArray) {
+        for (int i = 0; i < searchArray.size(); i++) {
+
+            JsonElement element = searchArray.get(i);
 
             if (!element.isJsonObject()) {
-                continue;
+                throw new WikipediaResponseException(
+                        "Некорректный элемент поиска с индексом " + i
+                );
             }
 
             JsonObject articleObject = element.getAsJsonObject();
@@ -73,30 +99,40 @@ public class WikipediaResponseParser {
             JsonElement pageIdElement = articleObject.get("pageid");
             JsonElement titleElement = articleObject.get("title");
 
-            // Проверяем наличие обязательных полей
-            if (pageIdElement == null || titleElement == null
-                    || pageIdElement.isJsonNull() || titleElement.isJsonNull()) {
-                continue;
+            if (pageIdElement == null || !pageIdElement.isJsonPrimitive()
+                    || !pageIdElement.getAsJsonPrimitive().isNumber()) {
+                throw new WikipediaResponseException(
+                        "Некорректный pageid у результата " + i
+                );
             }
 
-            try {
+            if (titleElement == null || !titleElement.isJsonPrimitive()
+                    || !titleElement.getAsJsonPrimitive().isString()) {
+                throw new WikipediaResponseException(
+                        "Некорректный title у результата " + i
+                );
+            }
 
-                long pageId = pageIdElement.getAsLong();
-                String title = titleElement.getAsString();
+            long pageId = pageIdElement.getAsLong();
+            String title = titleElement.getAsString();
 
-                String snippet = "";
+            String snippet = "";
 
-                JsonElement snippetElement = articleObject.get("snippet");
+            JsonElement snippetElement = articleObject.get("snippet");
 
-                if (snippetElement != null && !snippetElement.isJsonNull()) {
-                    snippet = snippetElement.getAsString();
+            if (snippetElement != null && !snippetElement.isJsonNull()) {
+
+                if (!snippetElement.isJsonPrimitive()
+                        || !snippetElement.getAsJsonPrimitive().isString()) {
+                    throw new WikipediaResponseException(
+                            "Некорректный snippet у результата " + i
+                    );
                 }
 
-                articles.add(new Article(pageId, title, snippet));
-
-            } catch (RuntimeException e) {
-                // Пропускаем некорректный отдельный результат
+                snippet = snippetElement.getAsString();
             }
+
+            articles.add(new Article(pageId, title, snippet));
         }
 
         return articles;

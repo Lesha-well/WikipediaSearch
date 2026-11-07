@@ -1,13 +1,15 @@
+
 package org.example.wikifinder;
 
 import org.example.wikifinder.api.WikipediaApiClient;
 import org.example.wikifinder.browser.BrowserOpener;
 import org.example.wikifinder.console.ConsoleInput;
 import org.example.wikifinder.console.ConsoleOutput;
+import org.example.wikifinder.exception.WikipediaApiException;
+import org.example.wikifinder.exception.WikipediaResponseException;
 import org.example.wikifinder.model.Article;
 import org.example.wikifinder.parser.WikipediaResponseParser;
 import org.example.wikifinder.service.WikipediaSearchService;
-import com.google.gson.JsonParseException;
 
 import java.io.IOException;
 import java.util.List;
@@ -32,10 +34,11 @@ public class Main {
 
         try (input) {
 
-            boolean shouldExit = false;
+            boolean running = true;
 
-            while (!shouldExit) {
+            while (running) {
 
+                // Получаем поисковый запрос
                 output.showSearchPrompt();
 
                 String query = input.readLine();
@@ -44,85 +47,92 @@ public class Main {
                     break;
                 }
 
-                if (query.isBlank()) {
+                query = query.trim();
+
+                if (query.isEmpty()) {
                     output.showEmptyQuery();
                     continue;
                 }
 
+                // Выполняем поиск
+                output.showSearching();
+
                 List<Article> articles;
 
                 try {
+                    articles = searchService.search(query);
 
-                    output.showSearching();
+                } catch (WikipediaApiException e) {
+                    output.showApiError(e.getMessage());
+                    continue;
 
-                    articles = searchService.search(query.trim());
+                } catch (WikipediaResponseException e) {
+                    output.showResponseError(e.getMessage());
+                    continue;
 
                 } catch (IOException e) {
-
                     output.showNetworkError(e.getMessage());
                     continue;
 
                 } catch (InterruptedException e) {
-
                     Thread.currentThread().interrupt();
                     output.showInterrupted();
                     break;
-
-                } catch (JsonParseException | IllegalArgumentException e) {
-
-                    output.showResponseError(e.getMessage());
-                    continue;
                 }
 
-                // Проверяем наличие результатов
+                // Проверяем результаты поиска
                 if (articles.isEmpty()) {
                     output.showNoResults();
                     continue;
                 }
 
-                // Выводим результаты поиска
                 output.showResults(articles);
 
-                // Обрабатываем выбор пользователя
-                while (true) {
+                // Предлагаем выбрать статью
+                boolean choosing = true;
+
+                while (choosing) {
 
                     output.promptForArticleChoice();
 
                     String choice = input.readLine();
 
                     if (choice == null || choice.trim().equalsIgnoreCase("exit")) {
-                        shouldExit = true;
+                        running = false;
                         break;
                     }
 
-                    if (choice.trim().equals("0")) {
-                        break;
+                    choice = choice.trim();
+
+                    // 0 — начать новый поиск
+                    if (choice.equals("0")) {
+                        choosing = false;
+                        continue;
                     }
 
-                    OptionalInt selectedNumber =
+                    OptionalInt selection =
                             input.parseArticleNumber(choice, articles.size());
 
-                    if (selectedNumber.isEmpty()) {
+                    if (selection.isEmpty()) {
                         output.showInvalidChoice();
                         continue;
                     }
 
+                    // Получаем выбранную статью
                     Article selectedArticle =
-                            articles.get(selectedNumber.getAsInt() - 1);
+                            articles.get(selection.getAsInt() - 1);
 
-                    // Открываем выбранную статью
+                    // Открываем статью в браузере
+                    output.showOpeningArticle(selectedArticle);
+
                     try {
-
-                        output.showOpeningArticle(selectedArticle);
-
                         browserOpener.open(selectedArticle);
 
                     } catch (IOException e) {
-
                         output.showBrowserError(e.getMessage());
                     }
 
-                    break;
+                    choosing = false;
                 }
             }
 

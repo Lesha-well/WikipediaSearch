@@ -84,10 +84,6 @@ public class ConsoleOutput {
         );
     }
 
-    public void showSelectedArticle(Article article) {
-        System.out.println("Выбрана статья: " + article.getTitle());
-    }
-
     public void showGoodbye() {
         System.out.println();
         System.out.println("Программа завершена.");
@@ -116,6 +112,14 @@ public class ConsoleOutput {
 
     public void showBrowserError(String message) {
         System.out.println("Не удалось открыть статью в браузере.");
+
+        if (message != null && !message.isBlank()) {
+            System.out.println("Подробности: " + message);
+        }
+    }
+
+    public void showApiError(String message) {
+        System.out.println("Ошибка API Википедии.");
 
         if (message != null && !message.isBlank()) {
             System.out.println("Подробности: " + message);

@@ -1,6 +1,9 @@
+
 package org.example.wikifinder.service;
 
 import org.example.wikifinder.api.WikipediaApiClient;
+import org.example.wikifinder.exception.WikipediaApiException;
+import org.example.wikifinder.exception.WikipediaResponseException;
 import org.example.wikifinder.model.Article;
 import org.example.wikifinder.parser.WikipediaResponseParser;
 
@@ -21,7 +24,8 @@ public class WikipediaSearchService {
     }
 
     public List<Article> search(String query)
-            throws IOException, InterruptedException {
+            throws IOException, InterruptedException,
+            WikipediaApiException, WikipediaResponseException {
 
         // Получаем JSON от Википедии
         String response = apiClient.search(query);

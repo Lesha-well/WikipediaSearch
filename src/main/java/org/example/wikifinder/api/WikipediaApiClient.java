@@ -32,12 +32,8 @@ public class WikipediaApiClient {
         );
 
         String url = API_URL
-                + "?action=query"
-                + "&list=search"
-                + "&utf8=1"
-                + "&format=json"
-                + "&srlimit=10"
-                + "&srsearch=" + encodedQuery;
+                + "?action=query&list=search&utf8=1&format=json&srlimit=10&srsearch="
+                + encodedQuery;
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
