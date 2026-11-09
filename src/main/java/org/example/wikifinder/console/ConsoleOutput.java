@@ -4,30 +4,33 @@ import org.example.wikifinder.model.Article;
 
 import java.util.List;
 
-public class ConsoleOutput {
+public final class ConsoleOutput {
 
-    public void showWelcome() {
+    private ConsoleOutput() {
+    }
+
+    public static void showWelcome() {
         System.out.println("========================================");
         System.out.println("       ПОИСКОВИК ПО ВИКИПЕДИИ");
         System.out.println("========================================");
     }
 
-    public void showSearchPrompt() {
+    public static void showSearchPrompt() {
         System.out.println();
         System.out.println("Введите поисковый запрос (или exit для выхода):");
         System.out.print("> ");
     }
 
-    public void showEmptyQuery() {
+    public static void showEmptyQuery() {
         System.out.println("Ошибка: поисковый запрос не может быть пустым.");
     }
 
-    public void showSearching() {
+    public static void showSearching() {
         System.out.println();
         System.out.println("Выполняется поиск...");
     }
 
-    public void showNetworkError(String message) {
+    public static void showNetworkError(String message) {
         System.out.println("Ошибка при обращении к Википедии.");
 
         if (message != null && !message.isBlank()) {
@@ -35,11 +38,19 @@ public class ConsoleOutput {
         }
     }
 
-    public void showInterrupted() {
+    public static void showApiError(String message) {
+        System.out.println("Ошибка API Википедии.");
+
+        if (message != null && !message.isBlank()) {
+            System.out.println("Подробности: " + message);
+        }
+    }
+
+    public static void showInterrupted() {
         System.out.println("Выполнение запроса было прервано.");
     }
 
-    public void showResponseError(String message) {
+    public static void showResponseError(String message) {
         System.out.println("Ошибка при обработке ответа Википедии.");
 
         if (message != null && !message.isBlank()) {
@@ -47,11 +58,11 @@ public class ConsoleOutput {
         }
     }
 
-    public void showNoResults() {
+    public static void showNoResults() {
         System.out.println("По вашему запросу ничего не найдено.");
     }
 
-    public void showResults(List<Article> articles) {
+    public static void showResults(List<Article> articles) {
 
         System.out.println();
         System.out.println("Найденные статьи:");
@@ -71,30 +82,30 @@ public class ConsoleOutput {
         System.out.println();
     }
 
-    public void promptForArticleChoice() {
+    public static void promptForArticleChoice() {
         System.out.println("Введите номер статьи для открытия.");
         System.out.println("Введите 0, чтобы выполнить новый поиск.");
         System.out.println("Введите exit для выхода.");
         System.out.print("> ");
     }
 
-    public void showInvalidChoice() {
+    public static void showInvalidChoice() {
         System.out.println(
                 "Некорректный выбор. Введите номер существующей статьи."
         );
     }
 
-    public void showGoodbye() {
+    public static void showGoodbye() {
         System.out.println();
         System.out.println("Программа завершена.");
     }
 
-    public void showInputError() {
+    public static void showInputError() {
         System.out.println("Ошибка при чтении пользовательского ввода.");
     }
 
     // Удаляем HTML-теги из описания, полученного от Википедии
-    private String cleanSnippet(String snippet) {
+    private static String cleanSnippet(String snippet) {
 
         return snippet
                 .replaceAll("<[^>]*>", "")
@@ -105,21 +116,13 @@ public class ConsoleOutput {
                 .replace("&#039;", "'");
     }
 
-    public void showOpeningArticle(Article article) {
+    public static void showOpeningArticle(Article article) {
         System.out.println();
         System.out.println("Открываю статью: " + article.getTitle());
     }
 
-    public void showBrowserError(String message) {
+    public static void showBrowserError(String message) {
         System.out.println("Не удалось открыть статью в браузере.");
-
-        if (message != null && !message.isBlank()) {
-            System.out.println("Подробности: " + message);
-        }
-    }
-
-    public void showApiError(String message) {
-        System.out.println("Ошибка API Википедии.");
 
         if (message != null && !message.isBlank()) {
             System.out.println("Подробности: " + message);

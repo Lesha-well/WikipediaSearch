@@ -6,24 +6,23 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.OptionalInt;
 
-public class ConsoleInput implements AutoCloseable {
+public final class ConsoleInput {
 
-    private final BufferedReader reader;
+    private static final BufferedReader READER =
+            new BufferedReader(
+                    new InputStreamReader(System.in, StandardCharsets.UTF_8)
+            );
 
-    public ConsoleInput() {
-        reader = new BufferedReader(
-                new InputStreamReader(System.in, StandardCharsets.UTF_8)
-        );
+    private ConsoleInput() {
     }
 
-    public String readLine() throws IOException {
-        return reader.readLine();
+    public static String readLine() throws IOException {
+        return READER.readLine();
     }
 
-    public OptionalInt parseArticleNumber(String value, int maxNumber) {
+    public static OptionalInt parseArticleNumber(String value, int maxNumber) {
 
         try {
-
             int number = Integer.parseInt(value.trim());
 
             if (number < 1 || number > maxNumber) {
@@ -33,13 +32,7 @@ public class ConsoleInput implements AutoCloseable {
             return OptionalInt.of(number);
 
         } catch (NumberFormatException e) {
-
             return OptionalInt.empty();
         }
-    }
-
-    @Override
-    public void close() throws IOException {
-        reader.close();
     }
 }

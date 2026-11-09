@@ -1,4 +1,3 @@
-
 package org.example.wikifinder;
 
 import org.example.wikifinder.api.WikipediaApiClient;
@@ -19,9 +18,6 @@ public class Main {
 
     public static void main(String[] args) {
 
-        ConsoleInput input = new ConsoleInput();
-        ConsoleOutput output = new ConsoleOutput();
-
         WikipediaApiClient apiClient = new WikipediaApiClient();
         WikipediaResponseParser parser = new WikipediaResponseParser();
 
@@ -30,18 +26,17 @@ public class Main {
 
         BrowserOpener browserOpener = new BrowserOpener();
 
-        output.showWelcome();
+        ConsoleOutput.showWelcome();
 
-        try (input) {
+        try {
 
             boolean running = true;
 
             while (running) {
 
-                // Получаем поисковый запрос
-                output.showSearchPrompt();
+                ConsoleOutput.showSearchPrompt();
 
-                String query = input.readLine();
+                String query = ConsoleInput.readLine();
 
                 if (query == null || query.trim().equalsIgnoreCase("exit")) {
                     break;
@@ -50,52 +45,57 @@ public class Main {
                 query = query.trim();
 
                 if (query.isEmpty()) {
-                    output.showEmptyQuery();
+                    ConsoleOutput.showEmptyQuery();
                     continue;
                 }
 
-                // Выполняем поиск
-                output.showSearching();
+                ConsoleOutput.showSearching();
 
                 List<Article> articles;
 
                 try {
+
                     articles = searchService.search(query);
 
                 } catch (WikipediaApiException e) {
-                    output.showApiError(e.getMessage());
+
+                    ConsoleOutput.showApiError(e.getMessage());
                     continue;
 
                 } catch (WikipediaResponseException e) {
-                    output.showResponseError(e.getMessage());
+
+                    ConsoleOutput.showResponseError(e.getMessage());
                     continue;
 
                 } catch (IOException e) {
-                    output.showNetworkError(e.getMessage());
+
+                    ConsoleOutput.showNetworkError(e.getMessage());
                     continue;
 
                 } catch (InterruptedException e) {
+
                     Thread.currentThread().interrupt();
-                    output.showInterrupted();
+                    ConsoleOutput.showInterrupted();
                     break;
                 }
 
-                // Проверяем результаты поиска
+                // Проверяем наличие результатов
                 if (articles.isEmpty()) {
-                    output.showNoResults();
+                    ConsoleOutput.showNoResults();
                     continue;
                 }
 
-                output.showResults(articles);
+                // Выводим результаты поиска
+                ConsoleOutput.showResults(articles);
 
-                // Предлагаем выбрать статью
+                // Обрабатываем выбор пользователя
                 boolean choosing = true;
 
                 while (choosing) {
 
-                    output.promptForArticleChoice();
+                    ConsoleOutput.promptForArticleChoice();
 
-                    String choice = input.readLine();
+                    String choice = ConsoleInput.readLine();
 
                     if (choice == null || choice.trim().equalsIgnoreCase("exit")) {
                         running = false;
@@ -104,32 +104,35 @@ public class Main {
 
                     choice = choice.trim();
 
-                    // 0 — начать новый поиск
                     if (choice.equals("0")) {
                         choosing = false;
                         continue;
                     }
 
                     OptionalInt selection =
-                            input.parseArticleNumber(choice, articles.size());
+                            ConsoleInput.parseArticleNumber(
+                                    choice,
+                                    articles.size()
+                            );
 
                     if (selection.isEmpty()) {
-                        output.showInvalidChoice();
+                        ConsoleOutput.showInvalidChoice();
                         continue;
                     }
 
-                    // Получаем выбранную статью
                     Article selectedArticle =
                             articles.get(selection.getAsInt() - 1);
 
-                    // Открываем статью в браузере
-                    output.showOpeningArticle(selectedArticle);
+                    // Открываем выбранную статью
+                    ConsoleOutput.showOpeningArticle(selectedArticle);
 
                     try {
+
                         browserOpener.open(selectedArticle);
 
                     } catch (IOException e) {
-                        output.showBrowserError(e.getMessage());
+
+                        ConsoleOutput.showBrowserError(e.getMessage());
                     }
 
                     choosing = false;
@@ -137,9 +140,10 @@ public class Main {
             }
 
         } catch (IOException e) {
-            output.showInputError();
+
+            ConsoleOutput.showInputError();
         }
 
-        output.showGoodbye();
+        ConsoleOutput.showGoodbye();
     }
 }
