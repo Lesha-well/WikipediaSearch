@@ -6,7 +6,7 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.example</groupId>
+    <groupId>org.example</groupId>
     <artifactId>wikipedia-search</artifactId>
     <version>1.0-SNAPSHOT</version>
 
@@ -35,7 +35,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.3.0</version>
                 <configuration>
-                    <mainClass>com.example.wikifinder.Main</mainClass>
+                    <mainClass>org.example.wikifinder.Main</mainClass>
                 </configuration>
             </plugin>
         </plugins>

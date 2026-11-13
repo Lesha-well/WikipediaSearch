@@ -64,22 +64,29 @@ public final class ConsoleOutput {
 
     public static void showResults(List<Article> articles) {
 
-        System.out.println();
-        System.out.println("Найденные статьи:");
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n").append("Найденные статьи:\n");
 
         for (int i = 0; i < articles.size(); i++) {
-
             Article article = articles.get(i);
-
-            System.out.println();
-            System.out.println((i + 1) + ". " + article.getTitle());
+            sb.append("\n")
+                    .append(i + 1)
+                    .append(". ")
+                    .append(article.getTitle())
+                    .append("\n");
 
             if (!article.getSnippet().isBlank()) {
-                System.out.println("   " + cleanSnippet(article.getSnippet()));
+                sb.append("   ")
+                        .append(cleanSnippet(article.getSnippet()))
+                        .append("\n");
             }
         }
 
-        System.out.println();
+        sb.append("\n");
+
+        String result = sb.toString();
+        System.out.print(result);
+
     }
 
     public static void promptForArticleChoice() {

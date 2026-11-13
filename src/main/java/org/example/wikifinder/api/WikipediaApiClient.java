@@ -6,6 +6,7 @@ import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
@@ -51,7 +52,7 @@ public class WikipediaApiClient {
                 HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8)
         );
 
-        if (response.statusCode() != 200) {
+        if (response.statusCode() != HttpURLConnection.HTTP_OK) {
             throw new IOException(
                     "Википедия вернула HTTP-статус: "
                             + response.statusCode()
